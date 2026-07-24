@@ -1,0 +1,8 @@
+.Rhistory
+.RData
+renv/library/
+dist/
+build/
+.codex/
+.agent-scratch/
+SESSION_TRANSCRIPT.md
