@@ -1,0 +1,10 @@
+Package: helloshiny
+Type: Project
+Title: Minimal rpackit Shiny Fixture
+Version: 0.0.1
+Description: A deterministic Shiny application used to verify rpackit
+    dependency planning and portable desktop resources.
+License: MIT
+Encoding: UTF-8
+Imports:
+    shiny
