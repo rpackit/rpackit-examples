@@ -16,34 +16,12 @@ rpackit::plan_dependencies(".")
 
 ## Windows portable-runtime quickstart
 
-The commands below use the published Windows x86_64 R 4.6.1 prototype. The
-release is intentionally marked as an unsigned development prerelease; verify
-the digest before extracting it and do not treat it as a signed installer.
+The current verified registry entry is the published Windows x86_64 R 4.6.1
+development prerelease. It is unsigned: rpackit verifies that its SHA-256
+matches the registry record, but this is not a code-signing guarantee.
 
-In PowerShell:
-
-```powershell
-$releaseBase = "https://github.com/rpackit/portable-r-windows/releases/download/v4.6.1"
-$runtimeUrl = "$releaseBase/portable-r-windows-x86_64-4.6.1.zip"
-$expectedSha256 = "d106a4ad618a5279d9db4a61412505a5353c94e402920c0d3a627d37c5f1bf50"
-$downloadPath = Join-Path $PWD "portable-r-windows-x86_64-4.6.1.zip"
-$runtimeParent = Join-Path $PWD "portable-r-runtime"
-
-Invoke-WebRequest -Uri $runtimeUrl -OutFile $downloadPath
-$actualSha256 = (
-  Get-FileHash -LiteralPath $downloadPath -Algorithm SHA256
-).Hash.ToLowerInvariant()
-if ($actualSha256 -ne $expectedSha256) {
-  throw "Portable R SHA-256 mismatch."
-}
-
-New-Item -ItemType Directory -Path $runtimeParent | Out-Null
-Expand-Archive -LiteralPath $downloadPath -DestinationPath $runtimeParent
-```
-
-The extracted runtime directory is
-`portable-r-runtime/portable-r-windows-x86_64-4.6.1`. Install the development
-package into your current R session, then prepare and run a new bundle:
+Install the development package into your current R session, then resolve,
+prepare, and run a new bundle:
 
 ```r
 if (!requireNamespace("pak", quietly = TRUE)) {
@@ -51,11 +29,14 @@ if (!requireNamespace("pak", quietly = TRUE)) {
 }
 pak::pkg_install("rpackit/rpackit")
 
-runtime_dir <- file.path(
-  getwd(),
-  "portable-r-runtime",
-  "portable-r-windows-x86_64-4.6.1"
+runtime <- rpackit::resolve_portable_runtime()
+stopifnot(
+  runtime$r_version == "4.6.1",
+  runtime$platform == "windows",
+  runtime$arch == "x86_64",
+  runtime$status == "verified"
 )
+
 output_dir <- file.path(
   tempdir(),
   paste0("hello-shiny-desktop-", format(Sys.time(), "%Y%m%d-%H%M%S"))
@@ -63,7 +44,8 @@ output_dir <- file.path(
 
 bundle <- rpackit::prepare_desktop(
   ".",
-  runtime_dir = runtime_dir,
+  runtime_dir = NULL,
+  r_version = runtime$r_version,
   output_dir = output_dir
 )
 rpackit::validate_desktop_bundle(
@@ -83,6 +65,14 @@ utils::browseURL(status$url)
 
 rpackit::stop_desktop_app(process)
 ```
+
+The explicit `resolve_portable_runtime()` call above makes the selected
+version, SHA-256, and cache state visible. Passing that version to
+`prepare_desktop(runtime_dir = NULL)` then reuses the same verified cache entry
+without downloading the artifact again.
+For later offline preparation, pass `offline = TRUE`; it fails clearly instead
+of accessing the runtime registry or artifact network when no matching cache
+entry exists.
 
 `prepare_desktop()` deliberately refuses to replace an existing
 `output_dir`; choose a new path for another build. Package restoration also
