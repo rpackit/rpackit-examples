@@ -4,6 +4,17 @@ A deliberately small Shiny application for exercising rpackit's implemented
 inspection, dependency planning, portable-resource preparation, authenticated
 managed-process lifecycle, and native-shell handoff contract.
 
+## Verified Windows prerelease
+
+The
+[`hello-shiny-v0.1.0`](https://github.com/rpackit/rpackit-examples/releases/tag/hello-shiny-v0.1.0)
+release contains the unsigned Windows x86_64 NSIS installer, its SHA-256, and
+secret-free install/run cleanup evidence. GitHub Actions builds it from pinned
+rpackit, template, and portable-R inputs; silently installs it, starts the
+installed app with system R removed from `PATH`, verifies graceful native
+cleanup, and uninstalls it. Large build outputs are retained only by the
+release, not by this source checkout.
+
 ## Run with the current R installation
 
 From this directory:
@@ -104,9 +115,10 @@ requires network access and may fail when an application depends on
 unavailable repositories, Bioconductor packages, or external system
 libraries.
 
-This workflow produces and starts validated desktop resources; it does not
-produce a native Tauri executable. Each `start_desktop_app()` call creates a
-fresh 256-bit session credential in a current-account-private, one-time file.
+The R quickstart above produces and starts validated desktop resources; the
+separate release workflow generates and verifies the native installer. Each
+`start_desktop_app()` call creates a fresh 256-bit session credential in a
+current-account-private, one-time file.
 Windows DACLs are restricted and verified for the current account plus SYSTEM;
 POSIX modes 0700/0600 are verified. Only the file path is passed to the
 launcher. The launcher consumes and deletes the file before app or port
