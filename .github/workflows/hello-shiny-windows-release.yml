@@ -288,6 +288,7 @@ jobs:
               ForEach-Object FullName
           )
           gh release create $env:GITHUB_REF_NAME @assets `
+            --repo $env:GITHUB_REPOSITORY `
             --prerelease `
             --verify-tag `
             --title "rpackit Hello Shiny 0.1.0" `
